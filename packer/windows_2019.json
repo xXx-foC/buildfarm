@@ -1,0 +1,90 @@
+{
+  "builders": [
+    {
+      "boot_wait": "2m",
+      "communicator": "winrm",
+      "disk_size": "{{user `disk_size`}}",
+      "floppy_files": [
+        "{{user `autounattend`}}",
+        "./scripts/disable-screensaver.ps1",
+        "./scripts/disable-winrm.ps1",
+        "./scripts/enable-winrm.ps1",
+        "./scripts/microsoft-updates.bat",
+        "./scripts/unattend.xml",
+        "./scripts/sysprep.bat",
+        "./scripts/win-updates.ps1"
+      ],
+      "guest_os_type": "windows9srv-64",
+      "headless": "{{user `headless`}}",
+      "iso_checksum": "{{user `iso_checksum`}}",
+      "iso_checksum_type": "{{user `iso_checksum_type`}}",
+      "iso_url": "{{user `iso_url`}}",
+      "format": "{{user `vm_format`}}",
+      "shutdown_command": "a:/sysprep.bat",
+      "type": "vmware-iso",
+      "version": 14,
+      "vm_name": "WindowsServer2019",
+      "vmx_data": {
+        "RemoteDisplay.vnc.enabled": "false",
+        "RemoteDisplay.vnc.port": "5900",
+        "virtualHW.version": "10",
+        "scsi0.virtualDev": "lsisas1068",
+        "memsize": "{{user `vm_memory_size`}}",
+        "numvcpus": "{{user `vm_cpu_size`}}",
+        "ethernet0.networkName": "VM Network",
+        "ethernet0.present": "true",
+        "ethernet0.startConnected": "true",
+        "ethernet0.addressType": "static",
+        "ethernet0.Address": "{{user `vm_mac_address`}}",
+        "ethernet0.virtualDev": "e1000"
+      },
+      "vmx_remove_ethernet_interfaces": false,
+      "vnc_port_max": 5990,
+      "vnc_port_min": 5987,
+      "vnc_disable_password": true,
+      "winrm_password": "vagrant",
+      "winrm_timeout": "{{user `winrm_timeout`}}",
+      "winrm_username": "vagrant",
+      "ovftool_options": "--exportFlags=mac",
+      "remote_type": "esx5",
+      "remote_host": "{{user `esxi_host`}}",
+      "remote_datastore": "{{user `esxi_datastore`}}",
+      "remote_username": "{{user `esxi_username`}}",
+      "remote_password": "{{user `esxi_password`}}",
+      "remote_cache_directory": "iso"
+    }
+  ],
+  "provisioners": [
+    {
+      "execute_command": "{{ .Vars }} cmd /c \"{{ .Path }}\"",
+      "scripts": [
+        "./scripts/vm-guest-tools.bat",
+        "./scripts/enable-rdp.bat"
+      ],
+      "type": "windows-shell"
+    },
+    {
+      "scripts": [
+        "./scripts/debloat-windows.ps1",
+        "./scripts/configureRemotingforAnsible.ps1"
+      ],
+      "type": "powershell"
+    },
+    {
+      "restart_timeout": "{{user `restart_timeout`}}",
+      "type": "windows-restart"
+    },
+    {
+      "execute_command": "{{ .Vars }} cmd /c \"{{ .Path }}\"",
+      "scripts": [
+        "./scripts/pin-powershell.bat",
+        "./scripts/set-winrm-automatic.bat",
+        "./scripts/uac-enable.bat",
+        "./scripts/compile-dotnet-assemblies.bat",
+        "./scripts/dis-updates.bat",
+        "./scripts/compact.bat"
+      ],
+      "type": "windows-shell"
+    }
+  ]
+}
