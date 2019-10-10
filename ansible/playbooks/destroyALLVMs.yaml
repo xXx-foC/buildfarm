@@ -1,8 +1,0 @@
----
-- hosts: vmguests
-  gather_facts: no
-  connection: local
-  become: false
-  tasks:
-  - import_role:
-      name: destroyallvms
