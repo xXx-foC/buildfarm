@@ -1,0 +1,19 @@
+---
+- name: reset dhcp
+  hosts: 127.0.0.1
+  connection: local
+  tasks:
+  - name: stop isc-dhcp-server
+    systemd:
+      name: isc-dhcp-server
+      state: stopped
+  - name: clear dhcp leases
+    become: true
+    shell: |
+      cat /dev/null > /var/lib/dhcp/dhcpd.leases
+      cat /dev/null > /var/lib/dhcp/dhcpd.leases~
+  - name: start the isc-dhcp-server again
+    systemd:
+      name: isc-dhcp-server
+      state: started
+

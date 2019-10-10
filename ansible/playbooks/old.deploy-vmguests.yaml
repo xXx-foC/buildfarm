@@ -1,0 +1,17 @@
+---
+- hosts: vmguests
+  gather_facts: no
+  become: false
+  tasks:
+  - name: "Provision VMguests"
+    shell: |
+      ~/buildfarm/ansible/files/deployvm2esx.sh \
+      "{{ inventory_hostname }}" \
+      "{{ macaddr }}" \
+      "{{ ovfsrc }}" \
+      "{{ esx_username }}" \
+      "{{ esx_host }}" \
+      "{{ esx_password }}"
+    delegate_to: localhost
+
+

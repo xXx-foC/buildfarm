@@ -1,0 +1,28 @@
+---
+- hosts: vmguests
+  gather_facts: no
+  connection: local
+  become: false
+  tasks:
+  - name: "Provision VMguests"
+    shell: |
+      /usr/bin/ovftool \
+      "--X:logFile={{ inventory_hostname }}.upload.log" \
+      --X:logLevel=verbose \
+      --disableVerification \
+      --noSSLVerify \
+      --datastore=datastore1 \
+      --network="VM Network" \
+      --powerOn \
+      --X:waitForIp \
+      "--name={{ inventory_hostname }}" \
+      "{{ ovfsrc }}" \
+      'vi://{{ esx_username }}:{{ esx_password }}@{{ esx_host }}'
+    args:
+      chdir: "{{ packer_directory }}" 
+    register: result
+
+  - name: Print results
+    debug:
+      msg: "{{ result }}"
+

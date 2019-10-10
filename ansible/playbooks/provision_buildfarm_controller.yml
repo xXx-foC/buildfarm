@@ -1,0 +1,60 @@
+---
+# need to add installer for  pip install pywinrm[kerberos]
+#  see requirements.txt for additional pip install and had to remove cryptography and reinstall
+- name: Provision buildfarm controller node 
+  hosts: 127.0.0.1
+  connection: local
+  tasks:
+  - name: Copy dhcp configuration files into place
+    copy:
+      src: ~/buildfarm/config/dhcp/dhcpd.conf
+      dest: /etc/dhcp/dhcpd.conf
+      owner: root
+      group: root
+      mode: '0644'
+    notify: 
+    - restart dhcp
+  - name: Copy tftp configuration files into place
+    copy:
+      src: ~/buildfarm/config/tftpd/tftp
+      dest: /etc/xinetd.d/tftp
+      owner: root
+      group: root
+      mode: '0644'
+    notify:
+    - restart xinetd
+  - name: Create tftpd root directory
+    file:
+      path: /tfpboot
+      state: directory
+      owner: nobody
+      group: nogroup
+      mode: '0777'
+  - name: Install apps
+    apt: name={{item}} state=present
+    with_items:
+      - unzip
+      - tftpd
+      - apache2
+      - isc-dhcp-server
+      - syslinux
+      - packer
+      - python-pip
+      - python-dev
+      - libkrb5-dev
+      - libssl-dev
+  - name: Start up apps
+    systemd: name={{item}} state=started daemon_reload=yes
+    with_items:
+      - apache2
+      - isc-dhcp-server
+      - xinetd
+  handlers:
+    - name: restart dhcp
+      service:
+        name: isc-dhcp-server
+        state: restarted
+    - name: restart xinetd
+      service:
+        name: xinetd
+        state: restarted

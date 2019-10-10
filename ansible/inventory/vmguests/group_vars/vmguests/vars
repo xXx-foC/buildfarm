@@ -1,0 +1,7 @@
+ovfsrc: "<full path to ovf created by packer>"
+ovfbkp: "<full path to ovf backup file >"
+ovfmf: "<full path to mf file>"
+ovfmfbkp: "<full path to mf file backup>"
+esx_username: root
+esx_password: "XXXXXXXXX"
+packer_directory: "<full patht to packer directory>"

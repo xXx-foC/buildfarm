@@ -1,0 +1,92 @@
+---
+- hosts: vmguests
+  gather_facts: no
+  become: false
+  tasks:
+  - name: "Provision VMguests"
+    shell: |
+      ~/buildfarm/ansible/files/deployvm2esx.sh \
+      "{{ inventory_hostname }}" \
+      "{{ macaddr }}" \
+      "{{ ovfsrc }}" \
+      "{{ esx_username }}" \
+      "{{ esx_host }}" \
+      "{{ esx_password }}"
+    delegate_to: localhost
+
+  - name: "Wait for connectity to proceed"
+    wait_for_connection:
+    delay: 60
+
+- hosts: vmguests
+  gather_facts: yes
+  tasks:
+  - name: Verify host connectivity
+    wait_for_connection:
+
+  - name: make temp copy of deployunattend.xml
+    become: false
+    copy:
+      src: ~/buildfarm/ansible/files/deployunattend.xml
+      dest: "~/buildfarm/ansible/files/{{ inventory_hostname }}.xml"
+    delegate_to: localhost
+
+  - name: replace XXXXXX with vmname 
+    become: false
+    replace:
+      path: "~/buildfarm/ansible/files/{{ inventory_hostname }}.xml"
+      regexp: 'XXXXXX'
+      replace: "{{ inventory_hostname }}"
+    delegate_to: localhost
+
+  - name: Create C:\Temp directory
+    win_file:
+      path: C:\Temp
+      state: directory
+
+  - name: Copy unattend.xml to C:\Temp
+    win_copy:
+      src: "~/buildfarm/ansible/files/{{ inventory_hostname }}.xml"
+      dest: C:\Temp\deployunattend.xml
+
+  - name: Copy sysprep.bat to C:\Temp
+    win_copy:
+      src: ~/buildfarm/ansible/files/sysprep.bat
+      dest: C:\Temp\
+
+  - name: "run sysprep command if {{ ansible_hostname }}"
+    win_shell: c:\Temp\sysprep.bat
+    args:
+      executable: cmd
+    register: sysprep
+    async: 45
+    poll: 0
+    when: ansible_hostname == 'VAGRANT'
+
+  - name: Delete used copy of unattend.xml
+    file:
+      path: "~/buildfarm/ansible/files/{{ inventory_hostname }}.xml"
+      state: absent
+    delegate_to: localhost
+
+  - name: Pause 5 mins for sysprep to finish
+    pause:
+      minutes: 5
+
+  - name: Wait for WinRM connectivity to return
+    wait_for_connection:
+    delay: 120
+
+  - name: Join the VMs to the domain.
+    win_domain_membership:
+      dns_domain_name: acme.epic
+      hostname: "{{ inventory_hostname }}"
+      domain_admin_user: "{{ ad_domain_user }}"
+      domain_admin_password: "{{ ad_domain_pw }}"
+      domain_ou_path: "{{ ad_ou_path }}"
+      state: domain
+    register: domain_state
+
+  - win_reboot:
+    when: domain_state.reboot_required
+

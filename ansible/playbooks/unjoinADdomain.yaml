@@ -1,0 +1,21 @@
+---
+- hosts: vmguests
+  gather_facts: no
+  tasks:
+  - win_domain_membership:
+      workgroup_name: not-epic 
+      domain_admin_user: "{{ ad_domain_user }}"
+      domain_admin_password: "{{ ad_domain_pw }}"
+      state: workgroup
+    register: domain_state
+
+  - win_reboot:
+    when: domain_state.reboot_required
+
+  - win_domain_computer:
+      name: "{{ inventory_hostname }}"
+      sam_account_name: "{{ inventory_hostname_short }}"
+      dns_hostname: "{{ inventory_hostname }}"
+      ou: "OU=BuildServers,DC=acme,DC=epic"
+      state: absent
+    delegate_to: dc01.acme.epic

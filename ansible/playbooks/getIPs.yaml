@@ -1,0 +1,18 @@
+---
+- hosts: vmguests 
+  gather_facts: no
+  remote_user: root
+  tasks:
+  - name: "Get IP addresses from {{ esx_host }}"
+    script: "~/buildfarm/ansible/files/getvmsips.sh {{ inventory_hostname }}"
+    delegate_to: "{{ esx_host }}"
+    register: ipaddress
+
+  - name: Print IP address
+    debug:
+      msg: "{{ ipaddress.stdout_lines }}"
+
+  - name: Create temp VM inventory
+    add_host: name={{ ipaddress.stdout_lines }}
+              groups=created_nodes
+    

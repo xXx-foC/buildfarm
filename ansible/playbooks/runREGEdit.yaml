@@ -1,0 +1,21 @@
+---
+- hosts: vmguests
+  gather_facts: no
+  vars_prompt:
+    - name: RegKey
+      prompt: "Type in the Registry Key you want to see" 
+      private: no
+    - name: ValueName
+      prompt: "Type in the name of the registry entry "
+      private: no
+  tasks:
+  - name: "Create registry entry"
+    win_reg_stat:
+      path: "{{ RegKey }}"
+      name: "{{ ValueName }}"
+    register: result
+    #  data: "{{ Data }}"
+    #  type: "{{ Type }}"
+    #  state: "{{ AddDelete }}"
+  - debug:
+      msg: "{{ result }}"
