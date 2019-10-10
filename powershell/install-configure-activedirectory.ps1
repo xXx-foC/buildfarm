@@ -1,6 +1,6 @@
 $domainMode=Win2012R2
 $forestMode=Win2012R2
-$domainName=acme.epic
+$domainName=acme.local
 $netbiosName=ACME
 $dbpath="C:\Windows\NTDS"
 $logpath="C:\Windows\NTDS"

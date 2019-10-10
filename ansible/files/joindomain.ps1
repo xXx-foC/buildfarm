@@ -1,1 +1,1 @@
-add-computer -domainname acme.epic -
+add-computer -domainname acme.locali 
