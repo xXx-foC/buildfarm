@@ -1,6 +1,6 @@
 [esxhosts]
-h01.acme.epic base_uri=10.251.251.201
-h02.acme.epic base_uri=10.251.251.202
+h01.acme.local base_uri=XX.XX.XX.201
+h02.acme.local base_uri=XX.XX.XX.202
 
 [esxhosts:vars]
 ansible_user=root

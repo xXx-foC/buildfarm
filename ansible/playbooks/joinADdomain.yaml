@@ -7,7 +7,7 @@
 
   - name: Join the VMs to the domain.
     win_domain_membership:
-      dns_domain_name: acme.epic
+      dns_domain_name: acme.local
       hostname: "{{ inventory_hostname }}"
       domain_admin_user: "{{ ad_domain_user }}"
       domain_admin_password: "{{ ad_domain_pw }}"
